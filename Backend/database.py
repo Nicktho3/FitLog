@@ -1,8 +1,11 @@
 from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, declarative_base
 
 DATABASE_URL = "postgresql://localhost/fitlog"
 
 engine = create_engine(DATABASE_URL)
+Base = declarative_base()
 
-with engine.connect() as connection: 
-    print("Connected to the database successfully!")
+SessionLocal = sessionmaker(bind=engine)
+
+
