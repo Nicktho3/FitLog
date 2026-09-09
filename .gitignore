@@ -13,3 +13,10 @@ venv/
 # IDE
 .idea/
 .vscode/
+# Local database and test artifacts
+*.db
+*.db-shm
+*.db-wal
+.pytest_cache/
+.coverage
+htmlcov/
