@@ -1,270 +1,100 @@
 # FitLog
 
-FitLog is a full-stack fitness tracking application that combines nutrition and workout tracking into one place.
+A lightweight workout and nutrition journal built with Python, FastAPI, SQLAlchemy, and plain JavaScript. A personal learning project focused on understanding a complete browser → API → database workflow.
 
-The goal of FitLog is to make it easy for users to track their daily calories and macronutrients while also logging workouts, exercises, sets, reps, and fitness progress.
+![FitLog journal with example food and workout entries](docs/screenshot.png)
 
-## Project Goals
+## What works
 
-FitLog will combine nutrition tracking and workout tracking so users do not need separate applications to manage their fitness journey.
+- Create an account, sign in, and sign out with a revocable cookie session.
+- Log exercises with sets, reps per set, and weight in pounds.
+- Manually log food portions with calories, protein, carbohydrates, and fat.
+- See daily nutrition totals against editable goals.
+- Select a date to review or add past entries.
+- Remove incorrect entries and log replacements.
+- Keep each account's entries private from other accounts.
+- Use a responsive interface without a frontend framework or build step.
 
-The application will focus on three main areas:
+A workout row represents sets performed at the same weight and repetition count. Log separate rows when these differ. Food values are the totals for the portion consumed, not per 100 g. Default nutrition goals are editable placeholders, not personalized recommendations.
 
-- Nutrition tracking
-- Workout tracking
-- Progress tracking
+## Run locally
 
-## Version 1 — MVP
+Requires Python 3.12. Run these commands from the repository root:
 
-The first version of FitLog will focus on the core features needed for a functional fitness tracker.
-
-### User Accounts
-
-Users will be able to:
-
-- Create an account
-- Log in and log out
-- Manage their profile
-- Set personal fitness goals
-
-### Nutrition Tracking
-
-Users will be able to:
-
-- Set a daily calorie goal
-- Set protein, carbohydrate, and fat goals
-- Log foods
-- Organize foods into meals
-- View daily calories and macronutrients
-- View progress toward daily nutrition goals
-
-### Workout Tracking
-
-Users will be able to:
-
-- Create workouts
-- Add exercises to workouts
-- Record sets
-- Record weight
-- Record repetitions
-- View previous workout performance
-- View workout history
-
-### Progress Tracking
-
-Users will be able to:
-
-- Record body weight
-- View body-weight history
-- Track strength progress
-- View personal records
-
-### Dashboard
-
-The FitLog dashboard will combine nutrition and workout information into one view.
-
-Users will be able to quickly see:
-
-- Calories consumed
-- Remaining calories
-- Protein, carbohydrates, and fat
-- Today's workout
-- Recent workout performance
-- Current body weight
-- Recent progress
-
-## Technology Stack
-
-### Frontend
-
-- HTML
-- CSS
-- JavaScript
-- Fetch API
-
-### Backend
-
-- Python
-- FastAPI
-- Pydantic
-- SQLAlchemy
-- Alembic
-
-### Database
-
-- PostgreSQL
-
-### Development Tools
-
-- Git
-- GitHub
-- pytest
-
-## Project Structure
-
-```text
-FitLog/
-│
-├── README.md
-├── .gitignore
-│
-├── frontend/
-│   ├── index.html
-│   │
-│   ├── css/
-│   │   └── style.css
-│   │
-│   └── js/
-│       └── app.js
-│
-└── backend/
+```sh
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements-lock.txt
+python -m uvicorn Backend.main:app --reload
 ```
 
-As FitLog grows, additional files and folders will be added to keep different parts of the application organized.
+Open **http://127.0.0.1:8000** and create an account. The frontend is served by FastAPI; do not open the HTML file directly. SQLite creates `fitlog.db` automatically at the repository root and keeps entries after restarting the server. This file is ignored by Git.
 
-## Application Architecture
+Interactive API documentation: **http://127.0.0.1:8000/docs** (loads its documentation UI from a CDN). The raw API schema is available offline at **http://127.0.0.1:8000/openapi.json**.
 
-FitLog will use a simple frontend, backend, and database architecture.
+`requirements.txt` lists runtime dependencies; `requirements-dev.txt` adds testing tools. `requirements-lock.txt` records every installed version used for verification.
 
-```text
-HTML + CSS + JavaScript
-       Frontend
-           │
-           │ Fetch API
-           ▼
-    Python + FastAPI
-        Backend
-           │
-           │ SQLAlchemy
-           ▼
-      PostgreSQL
-        Database
+## Test
+
+```sh
+python -m pytest -q
 ```
 
-### Frontend
+The tests use disposable databases in pytest's temporary directory. They cover account creation, login/logout, password hashing, session expiry, account isolation, food and workout persistence, daily totals, goals, validation, static files, and compatibility with the original bcrypt account hashes. An optional GitHub Actions template in `docs/github-actions-tests.yml` runs the suite and checks JavaScript syntax. To enable it, copy it to `.github/workflows/tests.yml` and commit using GitHub credentials with workflow permission. The current publishing token cannot create workflows, so CI is not enabled automatically.
 
-pages.
-The frontend is responsible for everything the user sees and interacts with.
-
-HTML will create the structure of the 
-CSS will control the appearance and layout.
-
-JavaScript will handle user interactions, calculations, and communication with the backend.
-
-The JavaScript Fetch API will be used to send requests to the FitLog backend.
-
-### Backend
-
-The backend will be built with Python and FastAPI.
-
-The backend will be responsible for:
-
-- Processing API requests
-- User authentication
-- Nutrition logic
-- Workout logic
-- Progress tracking
-- Data validation
-- Communicating with the database
-
-### Database
-
-PostgreSQL will store the application's permanent data.
-
-This will eventually include:
-
-- Users
-- User profiles
-- Nutrition goals
-- Foods
-- Meals
-- Exercises
-- Workouts
-- Workout sets
-- Body-weight entries
-- Personal records
-
-## How the Parts Work Together
-
-When a user performs an action in FitLog, the frontend will send a request to the Python backend.
-
-For example:
+## How it fits together
 
 ```text
-User clicks "View Workouts"
-          │
-          ▼
-JavaScript
-          │
-        fetch()
-          │
-          ▼
-FastAPI
-          │
-          ▼
-PostgreSQL
-          │
-     Workout data
-          │
-          ▼
-FastAPI
-          │
-        JSON
-          │
-          ▼
-JavaScript
-          │
-          ▼
-Workout displayed on screen
+Frontend/index.html  →  Frontend/app.js  →  Backend/main.py
+   Forms and UI         fetch + render      HTTP routes
+                                             ↓
+                                    schemas.py validates
+                                    auth.py identifies user
+                                             ↓
+                                    models.py + database.py
+                                             ↓
+                                      SQLite / PostgreSQL
 ```
 
-The frontend will not communicate directly with the database. FastAPI will act as the connection between the frontend and PostgreSQL.
+| File | Responsibility |
+| --- | --- |
+| `Backend/main.py` | API routes, startup, security headers, frontend serving |
+| `Backend/schemas.py` | Validate incoming data and define safe responses |
+| `Backend/models.py` | Database tables and columns |
+| `Backend/database.py` | Database engine and per-request sessions |
+| `Backend/auth.py` | Password hashing and cookie sessions |
+| `Frontend/index.html` | Accessible forms and page structure |
+| `Frontend/style.css` | Layout, styling, responsive breakpoints |
+| `Frontend/app.js` | Form handling, API calls, safe DOM updates |
+| `tests/test_api.py` | API integration tests with an isolated database |
 
-## Future Features
+**Start learning with [the code walkthrough](docs/LEARNING.md).** It explains the changed code in source order and follows one complete request.
 
-The following features may be added after the first version of FitLog is working:
+## Optional PostgreSQL
 
-- Food database API integration
-- Barcode scanning
-- Saved meals and recipes
-- Workout templates
-- Larger exercise library
-- Estimated one-rep max calculations
-- Advanced progress charts
-- Nutrition and training analytics
-- Exercise recommendations
-- Goal-based calorie recommendations
-- Apple Health integration
-- Mobile application
-- Social features
-- AI-powered fitness insights
+The default SQLite setup is enough for local use. To connect to PostgreSQL:
 
-A frontend framework such as React could also be introduced later if the frontend becomes large enough to benefit from one.
+```sh
+python -m pip install 'psycopg[binary]>=3.2,<4'
+export DATABASE_URL='postgresql+psycopg://YOUR_USER:YOUR_PASSWORD@localhost/fitlog'
+python -m uvicorn Backend.main:app --reload
+```
 
-## Development Approach
+Create the `fitlog` database first. Environment variables are read from your shell; `.env.example` documents them, but `.env` files are not loaded automatically. Do not commit credentials. Switching databases does not copy existing data. The original prototype's PostgreSQL users table is preserved; older bcrypt accounts can sign in, and receive default goals on first login.
 
-FitLog will be developed gradually, focusing on understanding each part of the application rather than adding every feature at once.
+## Scope and tradeoffs
 
-The initial development order will focus on:
+This is a local learning MVP. It does not include password reset, email verification, public-deployment rate limiting, database migrations, food search, barcode scanning, body-weight charts, or a mobile app. Accounts are case-sensitive by username; email is normalized to lowercase. Sessions expire after seven days. Goals apply to all dates, including history.
 
-1. Project setup
-2. Basic frontend
-3. Basic FastAPI backend
-4. Frontend-to-backend communication
-5. Database integration
-6. User accounts
-7. Workout tracking
-8. Nutrition tracking
-9. Progress tracking
-10. Dashboard
-11. Testing and improvements
+Passwords use salted PBKDF2-HMAC-SHA256; session tokens are random, stored hashed in the database, and sent in HttpOnly/SameSite=Strict cookies. Each data route checks the logged-in user. Before internet hosting, configure HTTPS with `COOKIE_SECURE=true`, add login rate limiting and account recovery, and introduce reviewed migrations and backups. `create_all()` creates missing tables but does not migrate existing columns.
 
-## Development Status
+Publishing the source to GitHub does not host the running Python application. GitHub Pages cannot run this backend.
 
-FitLog is currently in the initial development stage.
+## Suggested next learning steps
 
-The first goal is to establish the project structure and create a working connection between the HTML/JavaScript frontend and Python/FastAPI backend.
+1. Add an edit endpoint and explain how ownership checks prevent editing another user's entry.
+2. Add notes to workouts using a database migration.
+3. Add body-weight history with a small chart.
+4. Introduce pagination when the amount of data requires it.
 
-## Author
-
-FitLog is a personal full-stack software development project created to gain practical experience building a complete application using Python, JavaScript, APIs, databases, Git, and GitHub.
+For a résumé, describe what you can demonstrate: “Built a full-stack fitness journal with FastAPI, SQLAlchemy, and JavaScript, implementing authenticated CRUD APIs, per-user data isolation, and automated integration tests.” Use the walkthrough and exercises to make sure you can explain and modify the implementation yourself.
