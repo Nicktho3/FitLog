@@ -89,12 +89,3 @@ This is a local learning MVP. It does not include password reset, email verifica
 Passwords use salted PBKDF2-HMAC-SHA256; session tokens are random, stored hashed in the database, and sent in HttpOnly/SameSite=Strict cookies. Each data route checks the logged-in user. Before internet hosting, configure HTTPS with `COOKIE_SECURE=true`, add login rate limiting and account recovery, and introduce reviewed migrations and backups. `create_all()` creates missing tables but does not migrate existing columns.
 
 Publishing the source to GitHub does not host the running Python application. GitHub Pages cannot run this backend.
-
-## Suggested next learning steps
-
-1. Add an edit endpoint and explain how ownership checks prevent editing another user's entry.
-2. Add notes to workouts using a database migration.
-3. Add body-weight history with a small chart.
-4. Introduce pagination when the amount of data requires it.
-
-For a résumé, describe what you can demonstrate: “Built a full-stack fitness journal with FastAPI, SQLAlchemy, and JavaScript, implementing authenticated CRUD APIs, per-user data isolation, and automated integration tests.” Use the walkthrough and exercises to make sure you can explain and modify the implementation yourself.
